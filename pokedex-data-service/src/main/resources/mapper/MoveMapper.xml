@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+    技能数据库操作映射文件
+    提供对move表的查询操作和关联查询
+-->
+<mapper namespace="com.pokeanalytics.pokedexdataservice.mapper.MoveMapper">
+
+    <!-- 
+        查询技能列表，支持关键词搜索
+        参数:
+        - keyword: 搜索关键词（可选），用于匹配技能中文名或英文名
+        返回:
+        - 匹配的技能列表，包含基本信息和属性
+    -->
+    <select id="findMoveList" resultType="com.pokeanalytics.pokedexdataservice.entity.Move">
+        SELECT
+            id,                -- 技能ID
+            name_cn,           -- 技能中文名
+            name_en,           -- 技能英文名
+            type,              -- 技能属性英文名
+            type_cn,           -- 技能属性中文名
+            power,             -- 技能威力
+            pp,                -- 技能PP值
+            accuracy,          -- 技能命中率
+            flavor_text,       -- 技能描述文本
+            damage_class,      -- 技能伤害类别英文名
+            damage_class_cn    -- 技能伤害类别中文名
+        FROM
+            move
+        <!-- 动态WHERE条件，只有当keyword不为空时才添加条件 -->
+        <where>
+            <if test="keyword != null and keyword.trim() != ''">
+                <!-- 模糊匹配中文名或英文名 -->
+                (name_cn LIKE CONCAT('%', #{keyword}, '%') OR name_en LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY
+            id ASC            -- 按技能ID升序排序
+    </select>
+
+    <!-- 
+        根据技能ID查询能学会该技能的宝可梦列表
+        参数:
+        - moveId: 技能ID
+        返回:
+        - 能学会该技能的宝可梦列表，包含基本信息和学习方式
+    -->
+    <select id="findPokemonLearnersByMoveId" resultType="com.pokeanalytics.pokedexdataservice.dto.projection.MoveLearnerProjection">
+        SELECT
+            p.id AS pokemonId,                            -- 宝可梦ID
+            p.name_cn AS pokemonNameCn,                   -- 宝可梦中文名
+            p.sprite_pixel AS spritePixel,                -- 宝可梦像素图
+            pm.learn_method AS learnMethod,               -- 学习方式
+            pm.level_learned_at AS levelLearnedAt,        -- 学习等级（升级学习时）
+            pm.last_learn_generation AS lastLearnGeneration -- 最后能学会的世代
+        FROM
+            pokemon_move pm
+                JOIN
+            pokemon p ON pm.pokemon_id = p.id             -- 关联宝可梦基础信息
+        WHERE
+            pm.move_id = #{moveId}
+          AND (p.is_default = 1 OR p.is_default IS NULL)  -- 只关心默认形态是否能学会
+        ORDER BY
+            pm.learn_method, p.id                         -- 按学习方式和宝可梦ID排序
+    </select>
+</mapper>

@@ -1,0 +1,144 @@
+# ===================================================================
+# PokéAnalytics Spring Boot项目 .gitignore 文件
+# ===================================================================
+
+# ----------------------
+# Maven 构建产物
+# ----------------------
+target/
+**/target/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+.flattened-pom.xml
+.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ----------------------
+# Maven Wrapper
+# ----------------------
+.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+!**/mvnw
+!**/mvnw.cmd
+
+# ----------------------
+# IntelliJ IDEA
+# ----------------------
+.idea/
+*.iws
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+out/
+.factorypath
+
+# ----------------------
+# Eclipse
+# ----------------------
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+tmp/
+
+# ----------------------
+# NetBeans
+# ----------------------
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ----------------------
+# VS Code
+# ----------------------
+.vscode/
+*.code-workspace
+.history/
+
+# ----------------------
+# 日志文件
+# ----------------------
+*.log
+logs/
+log/
+
+# ----------------------
+# 本地配置文件（包含敏感信息）
+# ----------------------
+application-dev.yml
+application-dev.properties
+application-local.yml
+application-local.properties
+*-dev.yml
+*-local.yml
+*-prod.yml
+*-prod.properties
+
+# ----------------------
+# 操作系统自动生成的文件
+# ----------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ----------------------
+# 数据库相关文件
+# ----------------------
+data/mysql/
+*.mdf
+*.ldf
+*.ndf
+
+# ----------------------
+# Spring Boot 特定文件
+# ----------------------
+HELP.md
+spring.pid
+
+# ----------------------
+# 其他临时/编译文件
+# ----------------------
+*.class
+*.swp
+*.*~
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# 保留空目录的占位文件
+!.gitkeep

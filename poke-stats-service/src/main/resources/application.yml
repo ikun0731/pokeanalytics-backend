@@ -1,0 +1,59 @@
+# 服务器配置
+server:
+  # 服务端口号
+  port: 8003
+
+# Spring框架相关配置
+spring:
+  # 应用程序名称，用于服务注册和发现
+  application:
+    name: poke-stats-service
+
+  # Spring Cloud配置
+  cloud:
+    # Nacos服务发现配置
+    nacos:
+      # Nacos服务器地址
+      server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+
+  # 数据源配置
+  datasource:
+    # MySQL数据库连接URL
+    # 包含字符编码、时区和安全设置
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:pokemon_stats}?characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    # 数据库用户名
+    username: ${DB_USERNAME:root}
+    # 数据库密码
+    password: ${DB_PASSWORD}
+    # JDBC驱动类名
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # Redis数据库配置
+  data:
+    redis:
+      # Redis服务器地址
+      host: ${REDIS_HOST:localhost}
+      # Redis服务器端口
+      port: ${REDIS_PORT:6379}
+      # Redis密码
+      password: ${REDIS_PASSWORD:}
+      # 使用的Redis数据库编号，专门为poke-stats-service分配2号库
+      database: 2
+
+  # 缓存配置
+  cache:
+    # 缓存类型，使用Redis作为缓存
+    type: redis
+    # Redis缓存配置
+    redis:
+      # 缓存生存时间1小时
+      time-to-live: 1h
+
+# MyBatis-Plus配置
+mybatis-plus:
+  # Mapper XML文件位置
+  mapper-locations: classpath*:/mapper/**/*.xml
+  # MyBatis配置
+  configuration:
+    # SQL日志输出实现类，用于控制台打印SQL语句
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

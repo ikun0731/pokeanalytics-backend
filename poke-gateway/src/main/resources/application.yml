@@ -1,0 +1,61 @@
+# ===================================================================
+# 网关服务配置文件
+# ===================================================================
+
+spring:
+  application:
+    name: poke-gateway  # 网关服务名称
+
+  cloud:
+    # Nacos服务发现配置
+    nacos:
+      server-addr: ${NACOS_SERVER_ADDR:localhost:8848}  # Nacos服务器地址
+    
+    # Spring Cloud Gateway配置
+    gateway:
+      # 启用基于服务发现的路由定位
+      discovery:
+        locator:
+          enabled: true  # 允许通过服务ID访问服务
+      
+      # 路由规则配置
+      routes:
+        # 1. 宝可梦图鉴数据服务基础路由
+        - id: pokedex_data_route
+          uri: lb://pokedex-data-service  # 负载均衡到pokedex-data-service服务
+          predicates:
+            - Path=/api/pokedex/**  # 匹配/api/pokedex/开头的请求
+          filters:
+            - StripPrefix=2  # 去除路径前缀，转发时移除/api/pokedex
+        
+        # 2. 宝可梦性格数据专用路由
+        - id: pokedex_nature_route
+          uri: lb://pokedex-data-service  # 负载均衡到pokedex-data-service服务
+          predicates:
+            - Path=/api/pokedex/natures/**  # 匹配/api/pokedex/natures/开头的请求
+          filters:
+            - StripPrefix=2  # 去除路径前缀，转发时移除/api/pokedex
+        
+        # 3. 用户和队伍管理服务路由
+        - id: user_team_route
+          uri: lb://user-team-service  # 负载均衡到user-team-service服务
+          predicates:
+            - Path=/api/users/**  # 匹配/api/users/开头的请求
+          filters:
+            - StripPrefix=1  # 去除路径前缀，转发时移除/api
+        
+        # 4. 宝可梦数据排行榜路由
+        - id: poke_stats_leaderboard_route
+          uri: lb://poke-stats-service  # 负载均衡到poke-stats-service服务
+          predicates:
+            - Path=/api/stats/leaderboards/**  # 匹配/api/stats/leaderboards/开头的请求
+          filters:
+            - StripPrefix=2  # 去除路径前缀，转发时移除/api/stats
+        
+        # 5. 宝可梦数据详情与其他统计路由
+        - id: poke_stats_detail_route
+          uri: lb://poke-stats-service  # 负载均衡到poke-stats-service服务
+          predicates:
+            - Path=/api/stats/**  # 匹配/api/stats/开头的请求
+          filters:
+            - StripPrefix=1  # 去除路径前缀，转发时移除/api

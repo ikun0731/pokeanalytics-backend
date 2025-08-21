@@ -1,0 +1,89 @@
+# 服务器配置
+server:
+  # 服务端口号
+  port: 8001
+
+# Spring框架相关配置
+spring:
+  # Redis数据库配置
+  data:
+    redis:
+      # Redis服务器地址
+      host: ${REDIS_HOST:localhost}
+      # Redis服务器端口
+      port: ${REDIS_PORT:6379}
+      # Redis密码
+      password: ${REDIS_PASSWORD:}
+  
+  # 激活的Spring配置文件
+  profiles:
+    # 使用不同的配置，用于不同的数据修补
+    active:
+  
+  # 应用程序名称，用于服务注册和发现
+  application:
+    name: pokedex-data-service
+  
+  # Spring Cloud配置
+  cloud:
+    # Nacos服务发现配置
+    nacos:
+      # Nacos服务器地址
+      server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+  
+  # 数据源配置
+  datasource:
+    # MySQL数据库连接URL
+    # 包含字符编码、时区和安全设置
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:pokemon}?characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    # 数据库用户名
+    username: ${DB_USERNAME:root}
+    # 数据库密码
+    password: ${DB_PASSWORD}
+    # JDBC驱动类名
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # 缓存配置
+  cache:
+    # 缓存类型，使用Redis作为默认缓存和二级缓存
+    type: redis
+    
+    # 预定义缓存名称列表
+    # 显式声明所有将要使用的缓存，便于管理
+    cache-names:
+      - pokemonDetail  # 宝可梦详情缓存
+      - allNatures     # 所有性格缓存
+      - itemDetail     # 道具详情缓存
+      - abilityDetail  # 特性详情缓存
+      - allEggGroups   # 所有蛋组缓存
+      - allTypes       # 所有属性类型缓存
+    
+    # Caffeine本地缓存(一级缓存)配置
+    caffeine:
+      # 使用多行配置格式
+      spec: >
+        # 初始容量50个条目
+        initialCapacity=50,
+        # 最大容量500个条目
+        maximumSize=500,
+        # 写入后10分钟过期
+        expireAfterWrite=10m
+    
+    # Redis缓存(二级缓存)配置
+    redis:
+      # 缓存生存时间60分钟
+      time-to-live: 60m
+      # 缓存键前缀，防止多项目使用同一Redis实例时的键冲突
+      key-prefix: "poke-analytics::"
+      # 不缓存空值，避免缓存穿透问题
+      cache-null-values: false
+
+# MyBatis-Plus配置
+mybatis-plus:
+  # Mapper XML文件位置
+  mapper-locations: classpath*:/mapper/**/*.xml
+  # MyBatis配置
+  configuration:
+    # SQL日志输出实现类，用于控制台打印SQL语句
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+    宝可梦数据库操作映射文件
+    提供对pokemon表的查询操作和各种关联查询
+-->
+<mapper namespace="com.pokeanalytics.pokedexdataservice.mapper.PokemonMapper">
+
+    <!-- 
+        根据宝可梦ID查询其特性列表
+        参数:
+        - pokemonId: 宝可梦ID
+        返回:
+        - 该宝可梦的特性列表，包含特性名称和是否为隐藏特性
+    -->
+    <select id="findAbilitiesByPokemonId" resultType="com.pokeanalytics.pokedexdataservice.dto.response.AbilityDto">
+        SELECT
+            a.name_cn AS name,              -- 特性中文名
+            a.name_en as nameEn,            -- 特性英文名
+            pa.is_hidden AS isHidden,       -- 是否为隐藏特性
+            pa.last_generation AS lastGeneration  -- 最后拥有该特性的世代
+        FROM
+            pokemon_ability AS pa
+                JOIN
+            ability AS a ON pa.ability_id = a.id  -- 关联特性基础信息
+        WHERE
+            pa.pokemon_id = #{pokemonId}    -- 根据宝可梦ID筛选
+    </select>
+
+    <!-- 
+        根据宝可梦ID查询其进化链ID
+        参数:
+        - pokemonId: 宝可梦ID
+        返回:
+        - 该宝可梦所属的进化链ID
+    -->
+    <select id="findChainIdByPokemonId" resultType="java.lang.Integer">
+        SELECT
+            chain_id                        -- 进化链ID
+        FROM
+            evolution_chain
+        WHERE
+            from_pokemon_id = #{pokemonId} OR to_pokemon_id = #{pokemonId}  -- 作为进化前或进化后的宝可梦
+            LIMIT 1                         -- 只返回第一个匹配结果
+    </select>
+
+    <!-- 
+        根据进化链ID查询进化步骤
+        参数:
+        - chainId: 进化链ID
+        返回:
+        - 该进化链的所有进化步骤
+    -->
+    <select id="findEvolutionStepsByChainId" resultType="com.pokeanalytics.pokedexdataservice.entity.EvolutionChain">
+        SELECT
+            *                               -- 查询所有字段
+        FROM
+            evolution_chain
+        WHERE
+            chain_id = #{chainId}           -- 根据进化链ID筛选
+    </select>
+
+    <!-- 
+        根据基础名称查询相关形态
+        参数:
+        - baseName: 宝可梦基础英文名
+        返回:
+        - 该宝可梦的所有相关形态
+    -->
+    <select id="findRelatedFormsByBaseName" resultType="com.pokeanalytics.pokedexdataservice.entity.Pokemon">
+        SELECT
+            id,                             -- 宝可梦ID
+            name_cn,                        -- 宝可梦中文名
+            form_name,                      -- 形态名称
+            sprite_hd,                      -- 高清图片URL
+            sprite_pixel                    -- 像素图URL
+        FROM
+            pokemon
+        WHERE
+            name_en LIKE CONCAT(#{baseName}, '%')  -- 模糊匹配基础名称
+    </select>
+
+    <!-- 
+        查询宝可梦列表，支持多条件筛选
+        参数:
+        - keyword: 搜索关键词（可选），用于匹配宝可梦中文名或英文名
+        - type: 属性筛选（可选），用于筛选特定属性的宝可梦
+        - eggGroup: 蛋组筛选（可选），用于筛选特定蛋组的宝可梦
+        返回:
+        - 匹配的宝可梦列表，包含基本信息
+    -->
+    <select id="findPokemonList" resultType="com.pokeanalytics.pokedexdataservice.entity.Pokemon">
+        SELECT
+            id, name_cn, name_en,           -- 宝可梦ID和名称
+            type_1, type_2,                 -- 宝可梦属性英文名
+            type_1_cn, type_2_cn,           -- 宝可梦属性中文名
+            egg_group_1, egg_group_2,       -- 宝可梦蛋组
+            sprite_pixel                    -- 像素图URL
+        FROM
+            pokemon
+        <!-- 动态WHERE条件，根据传入参数构建 -->
+        <where>
+            <if test="keyword != null and keyword.trim() != ''">
+                <!-- 模糊匹配中文名或英文名 -->
+                (name_cn LIKE CONCAT('%', #{keyword}, '%') OR name_en LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="type != null and type.trim() != ''">
+                <!-- 匹配第一属性或第二属性 -->
+                AND (type_1_cn = #{type} OR type_2_cn = #{type})
+            </if>
+            <if test="eggGroup != null and eggGroup.trim() != ''">
+                <!-- 匹配第一蛋组或第二蛋组 -->
+                AND (egg_group_1 = #{eggGroup} OR egg_group_2 = #{eggGroup})
+            </if>
+        </where>
+        ORDER BY
+            id ASC                          -- 按宝可梦ID升序排序
+    </select>
+
+    <!-- 
+        查询所有蛋组
+        返回:
+        - 所有不重复的蛋组列表
+    -->
+    <select id="findAllEggGroups" resultType="java.lang.String">
+            <!-- 查询第一蛋组 -->
+            (SELECT DISTINCT egg_group_1 FROM pokemon WHERE egg_group_1 IS NOT NULL)
+            UNION
+            <!-- 查询第二蛋组并合并结果 -->
+            (SELECT DISTINCT egg_group_2 FROM pokemon WHERE egg_group_2 IS NOT NULL)
+            ORDER BY egg_group_1 ASC        -- 按蛋组名称排序
+    </select>
+
+    <!-- 
+        查询所有属性
+        返回:
+        - 所有不重复的属性列表
+    -->
+    <select id="findAllTypes" resultType="java.lang.String">
+            <!-- 查询第一属性 -->
+            (SELECT DISTINCT type_1_cn FROM pokemon WHERE type_1_cn IS NOT NULL)
+            UNION
+            <!-- 查询第二属性并合并结果 -->
+            (SELECT DISTINCT type_2_cn FROM pokemon WHERE type_2_cn IS NOT NULL)
+            ORDER BY type_1_cn ASC          -- 按属性名称排序
+    </select>
+
+    <!-- 
+        根据宝可梦ID查询其可学会的技能列表
+        参数:
+        - pokemonId: 宝可梦ID
+        返回:
+        - 该宝可梦可学会的技能列表，包含技能详情和学习方式
+    -->
+    <select id="findMovesByPokemonId" resultType="com.pokeanalytics.pokedexdataservice.dto.response.PokemonMoveDto">
+        SELECT
+            m.id AS moveId,                      -- 技能ID
+            m.name_cn AS nameCn,                 -- 技能中文名
+            m.name_en as nameEn,                 -- 技能英文名
+            m.type_cn AS typeCn,                 -- 技能属性中文名
+            m.damage_class_cn AS damageClassCn,  -- 技能伤害类别中文名
+            m.power,                             -- 技能威力
+            m.accuracy,                          -- 技能命中率
+            m.pp,                                -- 技能PP值
+            m.flavor_text AS flavorText,         -- 技能描述文本
+            pm.learn_method AS learnMethod,      -- 学习方式
+            pm.level_learned_at AS levelLearnedAt, -- 学习等级
+            pm.last_learn_generation AS lastLearnGeneration -- 最后能学会的世代
+        FROM
+            pokemon_move pm
+                JOIN
+            move m ON pm.move_id = m.id          -- 关联技能基础信息
+        WHERE
+            pm.pokemon_id = #{pokemonId}         -- 根据宝可梦ID筛选
+        ORDER BY
+            -- 优先按学习方式排序：升级学习 > 技能机 > 教授 > 其他
+            CASE pm.learn_method
+                WHEN 'level-up' THEN 1
+                WHEN 'machine' THEN 2
+                WHEN 'tutor' THEN 3
+                ELSE 4
+                END,
+            pm.level_learned_at ASC,             -- 升级学习按等级升序
+            m.id ASC                             -- 最后按技能ID排序
+    </select>
+
+    <!-- 
+        根据宝可梦英文名查找最匹配的宝可梦
+        参数:
+        - nameEn: 宝可梦英文名
+        返回:
+        - 最匹配的宝可梦信息
+        
+        说明:
+        - 优先完全匹配，其次前缀匹配
+        - 优先选择名称更短的基础形态
+    -->
+    <select id="findBestMatchByName" resultType="com.pokeanalytics.pokedexdataservice.entity.Pokemon">
+        SELECT * FROM pokemon
+        WHERE
+            -- 优先尝试完全匹配 (例如: 'pikachu' -> 'pikachu')
+            name_en = #{nameEn}
+            -- 如果无法完全匹配，则尝试前缀匹配 (例如: 'ogerpon-wellspring' -> 'ogerpon-wellspring-mask')
+            OR name_en LIKE CONCAT(#{nameEn}, '-%')
+        ORDER BY 
+            -- 优先选择名字更短的，通常是基础形态 (例如: 'rotom'匹配'rotom'和'rotom-wash'时，优先选择'rotom')
+            LENGTH(name_en) ASC, 
+            -- 如果长度相同，按ID排序
+            id ASC
+        -- 只返回最匹配的一个结果，防止程序因多结果而崩溃
+        LIMIT 1
+    </select>
+</mapper>

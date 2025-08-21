@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+    对战数据详情数据库操作映射文件
+    提供复杂的SQL查询，用于获取宝可梦使用详情数据并关联基础信息
+-->
+<mapper namespace="com.pokeanalytics.pokestatsservice.mapper.StatsDetailMapper">
+
+    <!-- 
+        查询宝可梦的使用详情数据，并关联基础信息
+        参数:
+        - statsId: 宝可梦使用率统计ID
+        - detailType: 详情类型（ability、item、move、teammate、tera）
+        返回:
+        - 使用详情列表，包含基础信息和使用率
+    -->
+    <select id="findUsageDetailsWithInfo" resultType="com.pokeanalytics.pokestatsservice.dto.StatDetailItemDto">
+        <!-- 
+            公用表表达式(CTE)，用于关联使用详情和基础信息
+            处理不同类型的详情数据，如特性、道具、技能、队友等
+        -->
+        WITH RankedMatches AS (
+            SELECT
+                ud.id AS usage_detail_id,
+                ud.detail_type,
+                ud.detail_name,
+                ud.usage_percentage,
+                pi.id AS pokemonId,
+                pi.name_cn AS teammate_name_cn,
+                mi.name_cn AS move_name_cn,
+                mi.type_cn AS move_type_cn,
+                ii.name_cn AS item_name_cn,
+                ai.name_cn AS ability_name_cn,
+                CASE
+                    WHEN ud.detail_type = 'teammate' THEN
+                        ROW_NUMBER() OVER (
+                            PARTITION BY ud.id
+                            ORDER BY
+                                -- 优先选择名称完全匹配的记录
+                                CASE
+                                    WHEN LOWER(REPLACE(pi.name_en, '-', '')) = LOWER(REPLACE(ud.detail_name, '-', '')) THEN 0
+                                    ELSE 1
+                                    END,
+                                -- 其次选择名称最长的记录（通常包含更多形态信息）
+                                LENGTH(pi.name_en) DESC
+                            )
+                    ELSE 1
+                    END AS rn
+            FROM
+                usage_details ud
+                    -- 关联队友宝可梦信息
+                    LEFT JOIN pokemon_info pi ON ud.detail_type = 'teammate' AND
+                                                 REPLACE(REPLACE(LOWER(pi.name_en), '-', ''), ' ', '') LIKE CONCAT(REPLACE(REPLACE(LOWER(ud.detail_name), '-', ''), ' ', ''), '%')
+                    -- 关联道具信息
+                    LEFT JOIN item_info ii ON ud.detail_type = 'item' AND
+                                              REPLACE(REPLACE(LOWER(ii.name_en), '-', ''), ' ', '') = REPLACE(REPLACE(LOWER(ud.detail_name), '-', ''), ' ', '')
+                    -- 关联技能信息
+                    LEFT JOIN move_info mi ON ud.detail_type = 'move' AND
+                                              REPLACE(REPLACE(LOWER(mi.name_en), '-', ''), ' ', '') = REPLACE(REPLACE(LOWER(ud.detail_name), '-', ''), ' ', '')
+                    -- 关联特性信息
+                    LEFT JOIN ability_info ai ON ud.detail_type = 'ability' AND
+                                                 REPLACE(REPLACE(LOWER(ai.name_en), '-', ''), ' ', '') = REPLACE(REPLACE(LOWER(ud.detail_name), '-', ''), ' ', '')
+            WHERE
+                ud.stats_id = #{statsId} AND ud.detail_type = #{detailType}
+        )
+        -- 主查询，根据详情类型选择相应的中文名
+        SELECT
+            CASE
+                WHEN rm.detail_type = 'teammate' THEN IFNULL(rm.teammate_name_cn, rm.detail_name) -- 队友名称
+                WHEN rm.detail_type = 'move' THEN IFNULL(rm.move_name_cn, rm.detail_name)         -- 技能名称
+                WHEN rm.detail_type = 'item' THEN IFNULL(rm.item_name_cn, rm.detail_name)         -- 道具名称
+                WHEN rm.detail_type = 'ability' THEN IFNULL(rm.ability_name_cn, rm.detail_name)   -- 特性名称
+                ELSE rm.detail_name                                                               -- 其他类型（如太晶属性）
+                END AS name,
+            rm.usage_percentage AS percentage,  -- 使用率
+            rm.move_type_cn AS typeCn,          -- 技能属性
+            rm.pokemonId AS pokemonId           -- 宝可梦ID（用于队友）
+        FROM
+            RankedMatches rm
+        WHERE
+            rm.rn = 1  -- 只选择最匹配的记录
+        ORDER BY
+            rm.usage_percentage DESC  -- 按使用率降序排序
+    </select>
+</mapper>

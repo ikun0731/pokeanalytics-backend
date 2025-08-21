@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+    特性数据库操作映射文件
+    提供对ability表的查询操作和关联查询
+-->
+<mapper namespace="com.pokeanalytics.pokedexdataservice.mapper.AbilityMapper">
+
+    <!-- 
+        根据特性ID查询拥有该特性的宝可梦列表
+        参数:
+        - abilityId: 特性ID
+        返回:
+        - 拥有该特性的宝可梦列表，包含基本信息和最后获得该特性的世代
+    -->
+    <select id="findPokemonByAbilityId" resultType="com.pokeanalytics.pokedexdataservice.dto.response.PokemonLearnerDto">
+        SELECT
+            p.id AS pokemonId,                       -- 宝可梦ID
+            p.name_cn AS pokemonNameCn,              -- 宝可梦中文名
+            p.sprite_pixel AS spritePixel,           -- 宝可梦像素图
+            pa.last_generation AS lastLearnGeneration -- 最后获得该特性的世代
+        FROM
+            pokemon_ability pa
+                JOIN
+            pokemon p ON pa.pokemon_id = p.id        -- 关联宝可梦基础信息
+        WHERE
+            pa.ability_id = #{abilityId}             -- 根据特性ID筛选
+        ORDER BY
+            p.id                                     -- 按宝可梦ID排序
+    </select>
+
+    <!-- 
+        根据特性英文名批量查询特性信息
+        参数:
+        - names: 特性英文名列表
+        返回:
+        - 匹配的特性信息列表
+    -->
+    <select id="selectBatchByNames" resultType="com.pokeanalytics.pokedexdataservice.entity.Ability">
+        select id, name_en, name_cn, effect
+        from ability
+        where name_en IN
+        <!-- 使用foreach循环生成IN子句 -->
+        <foreach item="name" collection="names" open="(" separator="," close=")">
+            #{name}
+        </foreach>
+    </select>
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+    宝可梦使用率统计数据库操作映射文件
+    提供对pokemon_usage_stats表的查询操作
+-->
+<mapper namespace="com.pokeanalytics.pokestatsservice.mapper.PokemonUsageStatsMapper">
+
+    <!-- 
+        根据宝可梦完整英文名查找最匹配的使用率统计记录
+        参数:
+        - snapshotId: 统计快照ID
+        - fullFormName: 宝可梦完整英文名
+        返回:
+        - 最匹配的使用率统计记录
+        
+        说明:
+        - 使用模糊匹配处理不同形态的宝可梦名称
+        - 优先返回名称最长的记录，通常包含更完整的形态信息
+    -->
+    <select id="findBestMatch" resultType="com.pokeanalytics.pokestatsservice.entity.PokemonUsageStats">
+        SELECT *
+        FROM pokemon_usage_stats
+        WHERE
+            snapshot_id = #{snapshotId}
+          AND #{fullFormName} LIKE CONCAT(pokemon_name_en, '%')
+        ORDER BY
+            LENGTH(pokemon_name_en) DESC
+        LIMIT 1
+    </select>
+
+</mapper>

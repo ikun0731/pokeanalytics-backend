@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+    道具数据库操作映射文件
+    提供对item表的查询操作
+-->
+<mapper namespace="com.pokeanalytics.pokedexdataservice.mapper.ItemMapper">
+
+    <!-- 
+        查询道具列表，支持关键词搜索
+        参数:
+        - keyword: 搜索关键词（可选），用于匹配道具中文名或英文名
+        返回:
+        - 匹配的道具列表，包含基本信息
+    -->
+    <select id="findItemList" resultType="com.pokeanalytics.pokedexdataservice.entity.Item">
+        SELECT
+            id,             -- 道具ID
+            name_cn,        -- 道具中文名
+            name_en,        -- 道具英文名
+            category_cn,    -- 道具分类中文名
+            sprite_url,     -- 道具图片URL
+            flavor_text     -- 道具描述文本
+        FROM
+            item
+        <!-- 动态WHERE条件，只有当keyword不为空时才添加条件 -->
+        <where>
+            <if test="keyword != null and keyword.trim() != ''">
+                <!-- 模糊匹配中文名或英文名 -->
+                (name_cn LIKE CONCAT('%', #{keyword}, '%') OR name_en LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY
+            id ASC         -- 按道具ID升序排序
+    </select>
+
+</mapper>

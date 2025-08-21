@@ -1,0 +1,76 @@
+# ===================================================================
+# 用户团队服务配置文件
+# ===================================================================
+
+# 服务器配置
+server:
+  port: 8083  # 服务运行端口
+
+# Spring 核心配置
+spring:
+  application:
+    name: user-team-service  # 微服务名称，用于服务注册与发现
+
+  # 服务注册与发现配置
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}  # Nacos服务器地址
+
+  # 数据库连接配置
+  datasource:
+    # 数据库连接URL，支持自定义主机、端口和数据库名
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:pokemon_user}?characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}  # 数据库用户名
+    password: ${DB_PASSWORD}       # 数据库密码（必须通过环境变量提供）
+    driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL驱动类
+
+  # Redis缓存配置
+  # 用于存储JWT黑名单、验证码等临时数据
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}  # Redis服务器地址
+      port: ${REDIS_PORT:6379}       # Redis服务器端口
+      password: ${REDIS_PASSWORD:}   # Redis密码（如有）
+      database: ${REDIS_DATABASE:1}  # 使用1号数据库，避免与其他服务冲突
+
+  # 邮件服务配置
+  # 用于发送注册验证码、密码重置邮件等
+  mail:
+    host: ${MAIL_HOST:smtp.qq.com}  # SMTP服务器地址
+    port: ${MAIL_PORT:587}          # SMTP服务器端口
+    username: ${MAIL_USERNAME}      # 发件人邮箱
+    password: ${MAIL_PASSWORD}      # SMTP授权码（非邮箱登录密码）
+    properties:
+      mail:
+        smtp:
+          auth: true                # 启用SMTP认证
+          starttls:
+            enable: true            # 启用STARTTLS加密
+            required: true          # 要求STARTTLS
+
+# MyBatis-Plus配置
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml  # XML映射文件位置
+  configuration:
+    map-underscore-to-camel-case: true           # 开启数据库字段下划线转驼峰命名
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 日志实现类，用于SQL调试
+
+# API文档配置（Swagger/SpringDoc）
+springdoc:
+  api-docs:
+    path: /v3/api-docs    # API文档JSON端点
+  swagger-ui:
+    path: /swagger-ui.html  # Swagger UI访问路径
+
+# 应用自定义配置
+# JWT认证相关配置
+poke-analytics:
+  jwt:
+    secret: "${JWT_SECRET}"  # JWT签名密钥（必须通过环境变量提供）
+    expiration: ${JWT_EXPIRATION:604800000}  # Token有效期，默认7天（毫秒）
+
+# 智谱AI服务配置
+zhipu:
+  api:
+    key: "${ZHIPU_API_KEY}"  # 智谱AI平台API密钥（必须通过环境变量提供）
