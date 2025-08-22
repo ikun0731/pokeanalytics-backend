@@ -8,6 +8,52 @@
 
 **前端仓库地址：** [https://github.com/ikun0731/pokeanalytics-frontend](http://yuyuwang.online)
 
+## 项目概述
+
+渔鱼宝可梦图鉴是一个专业的宝可梦数据分析平台，集成了宝可梦图鉴数据、对战统计分析和队伍管理功能。平台基于真实的宝可梦对战数据，为用户提供准确的使用率统计、队友推荐、技能道具搭配建议等，同时支持AI驱动的战术分析和队伍构建指导。
+
+### 核心特色
+
+- **完整的宝可梦图鉴**：包含所有宝可梦的详细信息、技能、道具、特性等数据
+- **对战数据分析**：基于Smogon对战平台数据的统计分析，包括使用率、胜率、常见配置等
+- **智能队伍管理**：支持队伍创建、编辑、导入导出，提供队伍分析功能
+- **AI战术分析**：集成智谱AI，为宝可梦和队伍提供专业的战术分析建议
+- **微服务架构**：采用Spring Cloud微服务架构，保证系统的高可用性和可扩展性
+- **高性能缓存**：使用Redis缓存热点数据，提升查询性能
+- **服务发现**：基于Nacos的服务注册与发现，支持负载均衡
+
+## 功能亮点
+
+### 架构设计亮点
+
+1. **微服务架构设计**：采用Spring Cloud微服务架构，实现服务解耦和独立部署。基于Nacos实现服务注册与发现，支持负载均衡和故障转移。使用Spring Cloud Gateway作为统一入口，实现路由转发、限流熔断等功能，具备高可用性和容错能力。
+
+2. **分布式系统设计**：通过服务拆分实现高可用性，单个服务故障不影响整体系统。支持水平扩展，可根据负载动态调整服务实例，具备良好的可扩展性。
+
+### 数据处理与性能优化亮点
+
+3. **智能数据同步与格式转换**：设计基于定时任务和手动触发的数据同步系统，支持从本地JSON文件解析对战数据。实现了智能命名格式转换算法，解决了不同数据源（Smogon、PokéAPI）之间的命名格式差异问题，确保数据一致性。引入Redis+Caffeine多级缓存机制，针对热点数据进行缓存优化，查询性能提升300%+。
+
+4. **复杂算法与数据分析**：实现了多种高级算法，包括：
+   - **使用率归一化算法**：针对单选项（特性、道具、太晶属性）实现百分比归一化计算
+   - **加权使用率计算**：针对多选项（技能、队友）实现基于总出场次数的加权使用率计算
+   - **队伍属性克制分析**：实现18种属性的克制关系计算，支持双属性宝可梦的复合克制倍率计算
+   - **智能匹配算法**：支持模糊匹配和形态变化的宝可梦查询（如mega进化形态）
+
+### 安全防护亮点
+
+5. **多层次安全防护体系**：基于JWT+Spring Security实现无状态身份认证，支持用户名密码和邮箱验证码双重登录方式。实现基于Bucket4j的接口限流机制，对AI分析接口进行每日20次请求限制，防止系统滥用。敏感数据加密存储，支持密码强度校验。
+
+### 智能化亮点
+
+6. **AI驱动的智能分析系统**：集成智谱AI服务（ChatGLM4模型），为宝可梦提供专业的战术分析建议。支持对宝可梦配置进行分析，提供技能、特性、道具推荐。实现队伍属性分析、弱点分析、克制关系分析，帮助用户优化队伍配置。通过精心设计的提示工程（Prompt Engineering），使AI能够生成符合宝可梦对战专业知识的战术建议。
+
+### 开发体验与运维亮点
+
+7. **高级队伍管理与导入导出**：实现了完整的队伍管理系统，支持队伍的创建、编辑、导入导出。开发了专用的Pokemon Showdown格式解析器和格式化器，能够智能识别和处理复杂的队伍配置文本，包括宝可梦、特性、道具、技能、努力值和个体值等信息。支持队伍属性分析，计算队伍对18种属性的抗性情况，帮助用户评估队伍的优劣势。
+
+8. **运维监控与部署支持**：集成Spring Boot Actuator提供健康检查、指标监控等运维功能。实现请求链路追踪，支持跨服务调用日志关联。提供完整的Docker部署方案，支持一键部署和环境隔离。使用Spring异步处理机制，将耗时操作异步化，提升系统响应速度。实现了全局异常处理机制，提供友好的错误提示和详细的错误日志。
+
 ## 项目截图
 
 <div align="center">
@@ -57,20 +103,6 @@
 
 *项目截图展示了系统的核心功能模块，包括对战数据分析、宝可梦图鉴（宝可梦、特性、道具）、队伍管理、AI战术分析和邮箱验证码登录等*
 
-## 项目概述
-
-渔鱼宝可梦图鉴是一个专业的宝可梦数据分析平台，集成了宝可梦图鉴数据、对战统计分析和队伍管理功能。平台基于真实的宝可梦对战数据，为用户提供准确的使用率统计、队友推荐、技能道具搭配建议等，同时支持AI驱动的战术分析和队伍构建指导。
-
-### 核心特色
-
-- **完整的宝可梦图鉴**：包含所有宝可梦的详细信息、技能、道具、特性等数据
-- **对战数据分析**：基于Smogon对战平台数据的统计分析，包括使用率、胜率、常见配置等
-- **智能队伍管理**：支持队伍创建、编辑、导入导出，提供队伍分析功能
-- **AI战术分析**：集成智谱AI，为宝可梦和队伍提供专业的战术分析建议
-- **微服务架构**：采用Spring Cloud微服务架构，保证系统的高可用性和可扩展性
-- **高性能缓存**：使用Redis缓存热点数据，提升查询性能
-- **服务发现**：基于Nacos的服务注册与发现，支持负载均衡
-
 ## 技术栈
 
 ### 后端技术栈
@@ -84,7 +116,7 @@
 - **数据库**：MySQL 8.0
 - **缓存**：Redis 6.x + Caffeine（多级缓存）
 - **AI服务**：智谱AI API
-- **消息队列**：RabbitMQ（异步处理）
+- **异步处理**：Spring @Async（任务异步执行）
 - **监控**：Spring Boot Actuator
 - **其他**：
   - Spring Cloud OpenFeign（服务间调用）
@@ -130,7 +162,6 @@ graph TD
     E --> K[Redis缓存]
     
     E --> L[智谱AI API]
-    E --> M[RabbitMQ消息队列]
     
     subgraph 核心业务模块
     N[宝可梦图鉴模块]
@@ -146,7 +177,9 @@ graph TD
     E --- P
     E --- Q
     E --- R
-    M --- S
+    C --- S
+    D --- S
+    E --- S
 ```
 
 ## 微服务架构
@@ -310,120 +343,111 @@ graph TD
 - `MAIL_USERNAME` - 邮箱地址
 - `MAIL_PASSWORD` - 邮箱授权码
 
-### 快速开始（本地开发）
+## 本地开发与运行指南 (Local Development Guide)
 
-1. **克隆项目**
+本项目遵循专业的开发规范，通过 Docker Compose 管理依赖服务，并通过 Spring Profiles 实现配置分离，确保本地开发的便捷与安全。
+
+### 1. 环境准备 (Prerequisites)
+
+- Java 17
+- Maven 3.6+
+- Docker 和 Docker Compose
+- 你常用的数据库客户端 (如 Navicat, DBeaver)
+- 你常用的 IDE (如 IntelliJ IDEA)
+
+### 2. 克隆项目 (Clone)
 ```bash
 git clone https://github.com/ikun0731/pokeanalytics-backend.git
 cd pokeanalytics-backend
 ```
 
-2. **启动依赖服务**
-```bash
-# 启动MySQL
-docker run -d --name mysql-pokemon -p 3306:3306 -e MYSQL_ROOT_PASSWORD=your_password mysql:8.0
+### 3. 启动依赖服务 (Start Dependencies)
+项目所需的中间件（Nacos, Redis）已通过 Docker Compose 统一管理。
 
-# 启动Redis
-docker run -d --name redis-pokemon -p 6379:6379 redis:6.0
+操作: 在项目根目录下，创建一个名为 `docker-compose.yml` 的文件，并粘贴以下内容：
 
-# 启动Nacos
-docker run -d --name nacos-pokemon -p 8848:8848 nacos/nacos-server:v2.2.0
+```yaml
+version: '3.8'
+services:
+  nacos:
+    image: nacos/nacos-server:v2.3.0
+    container_name: nacos-poke-dev
+    environment:
+      - MODE=standalone
+      - PREFER_HOST_MODE=hostname
+      - NACOS_AUTH_ENABLE=false
+    ports:
+      - "8848:8848"
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis-poke-dev
+    ports:
+      - "6379:6379"
 ```
 
-3. **初始化数据库**
-```bash
-# 创建数据库
-mysql -u root -p -e "CREATE DATABASE pokemon CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p -e "CREATE DATABASE pokemon_stats CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p -e "CREATE DATABASE pokemon_user CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+然后，在项目根目录的终端中，运行以下命令来启动 Nacos 和 Redis：
 
-# 导入数据库结构
-mysql -u root -p pokemon < pokedex-data-service/db/pokemon.sql
-mysql -u root -p pokemon_stats < poke-stats-service/db/pokemon_stats.sql
-mysql -u root -p pokemon_user < user-team-service/db/pokemon_user.sql
+```bash
+docker-compose up -d
 ```
 
-4. **配置环境变量**
-```bash
-export DB_USERNAME=root
-export DB_PASSWORD=your_password
-export NACOS_SERVER_ADDR=localhost:8848
-export JWT_SECRET=your_jwt_secret
-export ZHIPU_API_KEY=your_zhipu_api_key
+### 4. 准备数据库 (Database Setup)
+启动你电脑上安装的 MySQL 服务。
+
+使用 Navicat 等工具，手动创建三个空的数据库，并确保字符集为 utf8mb4:
+
+- pokemon
+- pokemon_stats
+- pokemon_user
+
+将你手上的三个 .sql 文件（包含完整结构和数据），依次导入到上面对应的三个数据库中。
+
+### 5. 配置本地私有信息 (Local Configuration)
+为每一个后端微服务模块（共4个），在 src/main/resources/ 目录下创建一个名为 application-local.yml 的新文件。
+
+**【极其重要】** 将 *-local.yml 添加到你项目根目录的 .gitignore 文件中，确保它不会被上传到 GitHub。
+
+在这些 application-local.yml 文件中，填入你本地开发所需的真实密码和密钥。
+
+user-team-service/src/main/resources/application-local.yml 示例:
+
+```yaml
+spring:
+  datasource:
+    # 填写你本地 MySQL 的真实密码
+    password: your_local_mysql_password 
+
+poke-analytics:
+  jwt:
+    secret: "your_super_secret_jwt_key_for_dev"
+
+zhipu:
+  api:
+    key: 'your_zhipu_ai_api_key'
 ```
 
-5. **启动服务**
-```bash
-# 启动图鉴数据服务
-cd pokedex-data-service
-mvn spring-boot:run
+(对其他三个服务，也创建对应的 application-local.yml 并填入数据库密码等信息)
 
-# 启动对战统计服务
-cd ../poke-stats-service
-mvn spring-boot:run
+### 6. 在 IDE 中启动微服务 (Run in IDE)
+在 IntelliJ IDEA 中，打开项目。
 
-# 启动用户队伍服务
-cd ../user-team-service
-mvn spring-boot:run
+为所有四个 ...Application 启动类（PokedexDataServiceApplication, PokeStatsServiceApplication, UserTeamServiceApplication, PokeGatewayApplication），编辑其运行/调试配置 (Run/Debug Configurations)。
 
-# 启动网关服务
-cd ../poke-gateway
-mvn spring-boot:run
-```
+在 "有效配置文件" (Active profiles) 输入框里，统一填写 local。
 
-### 生产环境部署
+按照以下顺序，依次点击绿色的"运行"按钮，启动所有四个后端微服务：
 
-1. **构建项目**
-```bash
-mvn clean package -DskipTests
-```
+1. PokedexDataServiceApplication
+2. PokeStatsServiceApplication
+3. UserTeamServiceApplication
+4. PokeGatewayApplication
 
-2. **使用Docker部署**
-```bash
-# 构建镜像
-docker build -t poke-gateway ./poke-gateway
-docker build -t pokedex-data-service ./pokedex-data-service
-docker build -t poke-stats-service ./poke-stats-service
-docker build -t user-team-service ./user-team-service
+### 7. 验证
+打开浏览器，访问 Nacos 控制台 http://localhost:8848。
 
-# 运行容器
-docker run -d --name poke-gateway -p 8080:8080 --env-file .env poke-gateway
-docker run -d --name pokedex-data-service -p 8001:8001 --env-file .env pokedex-data-service
-docker run -d --name poke-stats-service -p 8003:8003 --env-file .env poke-stats-service
-docker run -d --name user-team-service -p 8083:8083 --env-file .env user-team-service
-```
+在"服务列表"中，你应该能看到所有四个后端服务都已成功注册。
 
-## 功能亮点
-
-### 架构设计亮点
-
-1. **微服务架构设计**：采用Spring Cloud微服务架构，实现服务解耦和独立部署。基于Nacos实现服务注册与发现，支持负载均衡和故障转移。使用Spring Cloud Gateway作为统一入口，实现路由转发、限流熔断等功能，具备高可用性和容错能力。
-
-2. **分布式系统设计**：通过服务拆分实现高可用性，单个服务故障不影响整体系统。支持水平扩展，可根据负载动态调整服务实例，具备良好的可扩展性。
-
-### 数据处理与性能优化亮点
-
-3. **智能数据同步与格式转换**：设计基于定时任务和手动触发的数据同步系统，支持从本地JSON文件解析对战数据。实现了智能命名格式转换算法，解决了不同数据源（Smogon、PokéAPI）之间的命名格式差异问题，确保数据一致性。引入Redis+Caffeine多级缓存机制，针对热点数据进行缓存优化，查询性能提升300%+。
-
-4. **复杂算法与数据分析**：实现了多种高级算法，包括：
-   - **使用率归一化算法**：针对单选项（特性、道具、太晶属性）实现百分比归一化计算
-   - **加权使用率计算**：针对多选项（技能、队友）实现基于总出场次数的加权使用率计算
-   - **队伍属性克制分析**：实现18种属性的克制关系计算，支持双属性宝可梦的复合克制倍率计算
-   - **智能匹配算法**：支持模糊匹配和形态变化的宝可梦查询（如mega进化形态）
-
-### 安全防护亮点
-
-5. **多层次安全防护体系**：基于JWT+Spring Security实现无状态身份认证，支持用户名密码和邮箱验证码双重登录方式。实现基于Bucket4j的接口限流机制，对AI分析接口进行每日20次请求限制，防止系统滥用。敏感数据加密存储，支持密码强度校验。
-
-### 智能化亮点
-
-6. **AI驱动的智能分析系统**：集成智谱AI服务（ChatGLM4模型），为宝可梦提供专业的战术分析建议。支持对宝可梦配置进行分析，提供技能、特性、道具推荐。实现队伍属性分析、弱点分析、克制关系分析，帮助用户优化队伍配置。通过精心设计的提示工程（Prompt Engineering），使AI能够生成符合宝可梦对战专业知识的战术建议。
-
-### 开发体验与运维亮点
-
-7. **高级队伍管理与导入导出**：实现了完整的队伍管理系统，支持队伍的创建、编辑、导入导出。开发了专用的Pokemon Showdown格式解析器和格式化器，能够智能识别和处理复杂的队伍配置文本，包括宝可梦、特性、道具、技能、努力值和个体值等信息。支持队伍属性分析，计算队伍对18种属性的抗性情况，帮助用户评估队伍的优劣势。
-
-8. **运维监控与部署支持**：集成Spring Boot Actuator提供健康检查、指标监控等运维功能。实现请求链路追踪，支持跨服务调用日志关联。提供完整的Docker部署方案，支持一键部署和环境隔离。使用Spring异步处理机制，将耗时操作异步化，提升系统响应速度。实现了全局异常处理机制，提供友好的错误提示和详细的错误日志。
+至此，后端环境已准备就绪，可以与前端联调或通过 Swagger 进行测试。
 
 ## 未来规划
 
