@@ -42,15 +42,15 @@
         )
         -- 主查询，关联多个表获取完整的排行榜数据
         SELECT
-            ps.rank,                                          -- 排名
-            pi.id AS pokemonId,                              -- 宝可梦ID
-            IFNULL(pi.name_cn, ps.pokemon_name_en) AS nameCn, -- 宝可梦中文名
-            pi.types_cn AS typesCn,                          -- 宝可梦属性
-            pi.sprite_pixel AS spritePixel,                  -- 宝可梦像素图
-            pt.tier,                                         -- 竞技分级
-            ps.usage_rate AS usageRate,                      -- 使用率
-            rpm.pokemon_name_en_info AS NameEn,              -- 宝可梦英文名
-            IFNULL(ii.name_cn, ti.detail_name) AS topItem    -- 最常用道具
+            ps.rank,
+            pi.id AS pokemonId,
+            IFNULL(pi.name_cn, ps.pokemon_name_en) AS nameCn,
+            pi.types_cn AS typesCn,
+            pi.sprite_pixel AS spritePixel,
+            pt.tier,
+            ps.usage_rate AS usageRate,
+            rpm.pokemon_name_en_info AS NameEn,
+            IFNULL(ii.name_cn, ti.detail_name) AS topItem
         FROM
             pokemon_usage_stats ps
                 LEFT JOIN

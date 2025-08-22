@@ -15,16 +15,16 @@
     -->
     <select id="findAbilitiesByPokemonId" resultType="com.pokeanalytics.pokedexdataservice.dto.response.AbilityDto">
         SELECT
-            a.name_cn AS name,              -- 特性中文名
-            a.name_en as nameEn,            -- 特性英文名
-            pa.is_hidden AS isHidden,       -- 是否为隐藏特性
-            pa.last_generation AS lastGeneration  -- 最后拥有该特性的世代
+            a.name_cn AS name,
+            a.name_en as nameEn,
+            pa.is_hidden AS isHidden,
+            pa.last_generation AS lastGeneration
         FROM
             pokemon_ability AS pa
                 JOIN
-            ability AS a ON pa.ability_id = a.id  -- 关联特性基础信息
+            ability AS a ON pa.ability_id = a.id
         WHERE
-            pa.pokemon_id = #{pokemonId}    -- 根据宝可梦ID筛选
+            pa.pokemon_id = #{pokemonId}
     </select>
 
     <!-- 
@@ -36,12 +36,12 @@
     -->
     <select id="findChainIdByPokemonId" resultType="java.lang.Integer">
         SELECT
-            chain_id                        -- 进化链ID
+            chain_id
         FROM
             evolution_chain
         WHERE
-            from_pokemon_id = #{pokemonId} OR to_pokemon_id = #{pokemonId}  -- 作为进化前或进化后的宝可梦
-            LIMIT 1                         -- 只返回第一个匹配结果
+            from_pokemon_id = #{pokemonId} OR to_pokemon_id = #{pokemonId}
+            LIMIT 1
     </select>
 
     <!-- 
@@ -53,11 +53,11 @@
     -->
     <select id="findEvolutionStepsByChainId" resultType="com.pokeanalytics.pokedexdataservice.entity.EvolutionChain">
         SELECT
-            *                               -- 查询所有字段
+            *
         FROM
             evolution_chain
         WHERE
-            chain_id = #{chainId}           -- 根据进化链ID筛选
+            chain_id = #{chainId}
     </select>
 
     <!-- 
@@ -69,11 +69,11 @@
     -->
     <select id="findRelatedFormsByBaseName" resultType="com.pokeanalytics.pokedexdataservice.entity.Pokemon">
         SELECT
-            id,                             -- 宝可梦ID
-            name_cn,                        -- 宝可梦中文名
-            form_name,                      -- 形态名称
-            sprite_hd,                      -- 高清图片URL
-            sprite_pixel                    -- 像素图URL
+            id,
+            name_cn,
+            form_name,
+            sprite_hd,
+            sprite_pixel
         FROM
             pokemon
         WHERE
@@ -91,11 +91,11 @@
     -->
     <select id="findPokemonList" resultType="com.pokeanalytics.pokedexdataservice.entity.Pokemon">
         SELECT
-            id, name_cn, name_en,           -- 宝可梦ID和名称
-            type_1, type_2,                 -- 宝可梦属性英文名
-            type_1_cn, type_2_cn,           -- 宝可梦属性中文名
-            egg_group_1, egg_group_2,       -- 宝可梦蛋组
-            sprite_pixel                    -- 像素图URL
+            id, name_cn, name_en,
+            type_1, type_2,
+            type_1_cn, type_2_cn,
+            egg_group_1, egg_group_2,
+            sprite_pixel
         FROM
             pokemon
         <!-- 动态WHERE条件，根据传入参数构建 -->
@@ -114,7 +114,7 @@
             </if>
         </where>
         ORDER BY
-            id ASC                          -- 按宝可梦ID升序排序
+            id ASC
     </select>
 
     <!-- 
@@ -128,7 +128,7 @@
             UNION
             <!-- 查询第二蛋组并合并结果 -->
             (SELECT DISTINCT egg_group_2 FROM pokemon WHERE egg_group_2 IS NOT NULL)
-            ORDER BY egg_group_1 ASC        -- 按蛋组名称排序
+            ORDER BY egg_group_1 ASC
     </select>
 
     <!-- 
@@ -142,7 +142,7 @@
             UNION
             <!-- 查询第二属性并合并结果 -->
             (SELECT DISTINCT type_2_cn FROM pokemon WHERE type_2_cn IS NOT NULL)
-            ORDER BY type_1_cn ASC          -- 按属性名称排序
+            ORDER BY type_1_cn ASC
     </select>
 
     <!-- 
@@ -154,24 +154,24 @@
     -->
     <select id="findMovesByPokemonId" resultType="com.pokeanalytics.pokedexdataservice.dto.response.PokemonMoveDto">
         SELECT
-            m.id AS moveId,                      -- 技能ID
-            m.name_cn AS nameCn,                 -- 技能中文名
-            m.name_en as nameEn,                 -- 技能英文名
-            m.type_cn AS typeCn,                 -- 技能属性中文名
-            m.damage_class_cn AS damageClassCn,  -- 技能伤害类别中文名
-            m.power,                             -- 技能威力
-            m.accuracy,                          -- 技能命中率
-            m.pp,                                -- 技能PP值
-            m.flavor_text AS flavorText,         -- 技能描述文本
-            pm.learn_method AS learnMethod,      -- 学习方式
-            pm.level_learned_at AS levelLearnedAt, -- 学习等级
-            pm.last_learn_generation AS lastLearnGeneration -- 最后能学会的世代
+            m.id AS moveId,
+            m.name_cn AS nameCn,
+            m.name_en as nameEn,
+            m.type_cn AS typeCn,
+            m.damage_class_cn AS damageClassCn,
+            m.power,
+            m.accuracy,
+            m.pp,
+            m.flavor_text AS flavorText,
+            pm.learn_method AS learnMethod,
+            pm.level_learned_at AS levelLearnedAt,
+            pm.last_learn_generation AS lastLearnGeneration
         FROM
             pokemon_move pm
                 JOIN
-            move m ON pm.move_id = m.id          -- 关联技能基础信息
+            move m ON pm.move_id = m.id
         WHERE
-            pm.pokemon_id = #{pokemonId}         -- 根据宝可梦ID筛选
+            pm.pokemon_id = #{pokemonId}
         ORDER BY
             -- 优先按学习方式排序：升级学习 > 技能机 > 教授 > 其他
             CASE pm.learn_method
@@ -180,8 +180,8 @@
                 WHEN 'tutor' THEN 3
                 ELSE 4
                 END,
-            pm.level_learned_at ASC,             -- 升级学习按等级升序
-            m.id ASC                             -- 最后按技能ID排序
+            pm.level_learned_at ASC,
+            m.id ASC
     </select>
 
     <!-- 

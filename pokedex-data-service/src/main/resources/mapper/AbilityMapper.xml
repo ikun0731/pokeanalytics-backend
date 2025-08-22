@@ -15,18 +15,18 @@
     -->
     <select id="findPokemonByAbilityId" resultType="com.pokeanalytics.pokedexdataservice.dto.response.PokemonLearnerDto">
         SELECT
-            p.id AS pokemonId,                       -- 宝可梦ID
-            p.name_cn AS pokemonNameCn,              -- 宝可梦中文名
-            p.sprite_pixel AS spritePixel,           -- 宝可梦像素图
-            pa.last_generation AS lastLearnGeneration -- 最后获得该特性的世代
+            p.id AS pokemonId,
+            p.name_cn AS pokemonNameCn,
+            p.sprite_pixel AS spritePixel,
+            pa.last_generation AS lastLearnGeneration
         FROM
             pokemon_ability pa
                 JOIN
-            pokemon p ON pa.pokemon_id = p.id        -- 关联宝可梦基础信息
+            pokemon p ON pa.pokemon_id = p.id
         WHERE
-            pa.ability_id = #{abilityId}             -- 根据特性ID筛选
+            pa.ability_id = #{abilityId}
         ORDER BY
-            p.id                                     -- 按宝可梦ID排序
+            p.id
     </select>
 
     <!-- 

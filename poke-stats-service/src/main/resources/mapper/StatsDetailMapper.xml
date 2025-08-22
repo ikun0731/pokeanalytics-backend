@@ -66,20 +66,20 @@
         -- 主查询，根据详情类型选择相应的中文名
         SELECT
             CASE
-                WHEN rm.detail_type = 'teammate' THEN IFNULL(rm.teammate_name_cn, rm.detail_name) -- 队友名称
-                WHEN rm.detail_type = 'move' THEN IFNULL(rm.move_name_cn, rm.detail_name)         -- 技能名称
-                WHEN rm.detail_type = 'item' THEN IFNULL(rm.item_name_cn, rm.detail_name)         -- 道具名称
-                WHEN rm.detail_type = 'ability' THEN IFNULL(rm.ability_name_cn, rm.detail_name)   -- 特性名称
-                ELSE rm.detail_name                                                               -- 其他类型（如太晶属性）
+                WHEN rm.detail_type = 'teammate' THEN IFNULL(rm.teammate_name_cn, rm.detail_name)
+                WHEN rm.detail_type = 'move' THEN IFNULL(rm.move_name_cn, rm.detail_name)
+                WHEN rm.detail_type = 'item' THEN IFNULL(rm.item_name_cn, rm.detail_name)
+                WHEN rm.detail_type = 'ability' THEN IFNULL(rm.ability_name_cn, rm.detail_name)
+                ELSE rm.detail_name
                 END AS name,
-            rm.usage_percentage AS percentage,  -- 使用率
-            rm.move_type_cn AS typeCn,          -- 技能属性
-            rm.pokemonId AS pokemonId           -- 宝可梦ID（用于队友）
+            rm.usage_percentage AS percentage,
+            rm.move_type_cn AS typeCn,
+            rm.pokemonId AS pokemonId
         FROM
             RankedMatches rm
         WHERE
-            rm.rn = 1  -- 只选择最匹配的记录
+            rm.rn = 1
         ORDER BY
-            rm.usage_percentage DESC  -- 按使用率降序排序
+            rm.usage_percentage DESC
     </select>
 </mapper>

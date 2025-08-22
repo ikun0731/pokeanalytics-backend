@@ -15,12 +15,12 @@
     -->
     <select id="findItemList" resultType="com.pokeanalytics.pokedexdataservice.entity.Item">
         SELECT
-            id,             -- 道具ID
-            name_cn,        -- 道具中文名
-            name_en,        -- 道具英文名
-            category_cn,    -- 道具分类中文名
-            sprite_url,     -- 道具图片URL
-            flavor_text     -- 道具描述文本
+            id,
+            name_cn,
+            name_en,
+            category_cn,
+            sprite_url,
+            flavor_text
         FROM
             item
         <!-- 动态WHERE条件，只有当keyword不为空时才添加条件 -->
@@ -31,7 +31,7 @@
             </if>
         </where>
         ORDER BY
-            id ASC         -- 按道具ID升序排序
+            id ASC
     </select>
 
 </mapper>

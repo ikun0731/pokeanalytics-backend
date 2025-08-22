@@ -15,17 +15,17 @@
     -->
     <select id="findMoveList" resultType="com.pokeanalytics.pokedexdataservice.entity.Move">
         SELECT
-            id,                -- 技能ID
-            name_cn,           -- 技能中文名
-            name_en,           -- 技能英文名
-            type,              -- 技能属性英文名
-            type_cn,           -- 技能属性中文名
-            power,             -- 技能威力
-            pp,                -- 技能PP值
-            accuracy,          -- 技能命中率
-            flavor_text,       -- 技能描述文本
-            damage_class,      -- 技能伤害类别英文名
-            damage_class_cn    -- 技能伤害类别中文名
+            id,
+            name_cn,
+            name_en,
+            type,
+            type_cn,
+            power,
+            pp,
+            accuracy,
+            flavor_text,
+            damage_class,
+            damage_class_cn
         FROM
             move
         <!-- 动态WHERE条件，只有当keyword不为空时才添加条件 -->
@@ -36,7 +36,7 @@
             </if>
         </where>
         ORDER BY
-            id ASC            -- 按技能ID升序排序
+            id ASC
     </select>
 
     <!-- 
@@ -48,20 +48,20 @@
     -->
     <select id="findPokemonLearnersByMoveId" resultType="com.pokeanalytics.pokedexdataservice.dto.projection.MoveLearnerProjection">
         SELECT
-            p.id AS pokemonId,                            -- 宝可梦ID
-            p.name_cn AS pokemonNameCn,                   -- 宝可梦中文名
-            p.sprite_pixel AS spritePixel,                -- 宝可梦像素图
-            pm.learn_method AS learnMethod,               -- 学习方式
-            pm.level_learned_at AS levelLearnedAt,        -- 学习等级（升级学习时）
-            pm.last_learn_generation AS lastLearnGeneration -- 最后能学会的世代
+            p.id AS pokemonId,
+            p.name_cn AS pokemonNameCn,
+            p.sprite_pixel AS spritePixel,
+            pm.learn_method AS learnMethod,
+            pm.level_learned_at AS levelLearnedAt,
+            pm.last_learn_generation AS lastLearnGeneration
         FROM
             pokemon_move pm
                 JOIN
-            pokemon p ON pm.pokemon_id = p.id             -- 关联宝可梦基础信息
+            pokemon p ON pm.pokemon_id = p.id
         WHERE
             pm.move_id = #{moveId}
-          AND (p.is_default = 1 OR p.is_default IS NULL)  -- 只关心默认形态是否能学会
+          AND (p.is_default = 1 OR p.is_default IS NULL)
         ORDER BY
-            pm.learn_method, p.id                         -- 按学习方式和宝可梦ID排序
+            pm.learn_method, p.id
     </select>
 </mapper>
