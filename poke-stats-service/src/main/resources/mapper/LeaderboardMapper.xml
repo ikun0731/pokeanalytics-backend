@@ -15,52 +15,70 @@
         - 宝可梦使用率排行榜数据，包含基本信息和最常用道具
     -->
     <select id="getLeaderboard" resultType="com.pokeanalytics.pokestatsservice.dto.projection.LeaderboardProjection">
+        <!--
+            公用表表达式(CTE)，用于匹配宝可梦使用率数据和基础信息
+            解决不同数据源宝可梦名称可能不完全一致的问题
+        -->
+        WITH RankedPokemonMatches AS (
         SELECT
-            ps.rank,
-            pi.id AS pokemonId,
-            IFNULL(pi.name_cn, ps.pokemon_name_en) AS nameCn,
-            pi.types_cn AS typesCn,
-            pi.sprite_pixel AS spritePixel,
-            pt.tier,
-            ps.usage_rate AS usageRate,
-            ps.pokemon_name_en AS NameEn,
-            IFNULL(i.item_name_cn, i.item_name) AS topItem
-        FROM
-            pokemon_usage_stats ps
-                LEFT JOIN
-            pokemon_info pi ON pi.name_en = ps.pokemon_name_en
-                LEFT JOIN
-            pokemon_tier pt ON pt.pokemon_name_en = ps.pokemon_name_en AND pt.format = #{format}
-                LEFT JOIN
-            (
-                SELECT 
-                    ud.stats_id,
-                    ud.detail_name as item_name,
-                    ii.name_cn as item_name_cn
-                FROM
-                    (
-                        SELECT 
-                            stats_id, 
-                            detail_name,
-                            ROW_NUMBER() OVER(PARTITION BY stats_id ORDER BY usage_percentage DESC) as rn
-                        FROM 
-                            usage_details 
-                        WHERE 
-                            detail_type = 'item' AND
-                            stats_id IN (SELECT id FROM pokemon_usage_stats WHERE snapshot_id = #{snapshotId})
-                    ) ud
-                    LEFT JOIN
-                    item_info ii ON REPLACE(REPLACE(LOWER(ii.name_en), ' ', ''), '-', '') = 
-                                    REPLACE(REPLACE(LOWER(ud.detail_name), ' ', ''), '-', '')
-                WHERE
-                    ud.rn = 1
-            ) i ON ps.id = i.stats_id
-        WHERE
-            ps.snapshot_id = #{snapshotId}
+        ps.id AS stats_id,
+        pi.id AS pokemon_id,
+        pi.name_en AS pokemon_name_en_info,
+        ROW_NUMBER() OVER (
+        PARTITION BY ps.id
         ORDER BY
-            ps.usage_rate DESC,
-            FIELD(pt.tier, 'AG', 'Uber', 'OU', 'UUBL', 'UU', 'RUBL', 'RU', 'NUBL', 'NU', 'PUBL', 'PU', 'NFE', 'LC'),
-            pi.id ASC
+        -- 优先选择名称完全匹配的记录
+        CASE WHEN pi.name_en = ps.pokemon_name_en THEN 0 ELSE 1 END,
+        -- 其次选择名称最长的记录（通常包含更多形态信息）
+        LENGTH(pi.name_en) DESC
+        ) AS rn
+        FROM
+        pokemon_usage_stats ps
+        LEFT JOIN
+        -- 模糊匹配，处理形态差异
+        pokemon_info pi ON (pi.name_en LIKE CONCAT(ps.pokemon_name_en, '%') OR ps.pokemon_name_en LIKE CONCAT(pi.name_en, '%'))
+        WHERE
+        ps.snapshot_id = #{snapshotId}
+        )
+        -- 主查询，关联多个表获取完整的排行榜数据
+        SELECT
+        ps.rank,
+        pi.id AS pokemonId,
+        IFNULL(pi.name_cn, ps.pokemon_name_en) AS nameCn,
+        pi.types_cn AS typesCn,
+        pi.sprite_pixel AS spritePixel,
+        pt.tier,
+        ps.usage_rate AS usageRate,
+        rpm.pokemon_name_en_info AS NameEn,
+        IFNULL(ii.name_cn, ti.detail_name) AS topItem
+        FROM
+        pokemon_usage_stats ps
+        LEFT JOIN
+        -- 关联匹配到的宝可梦基础信息
+        RankedPokemonMatches rpm ON ps.id = rpm.stats_id AND rpm.rn = 1
+        LEFT JOIN
+        pokemon_info pi ON rpm.pokemon_id = pi.id
+        LEFT JOIN
+        -- 关联竞技分级信息
+        pokemon_tier pt ON rpm.pokemon_name_en_info = pt.pokemon_name_en AND pt.format = #{format}
+        LEFT JOIN
+        -- 子查询：获取每个宝可梦的最常用道具
+        (
+        SELECT stats_id, detail_name, ROW_NUMBER() OVER(PARTITION BY stats_id ORDER BY usage_percentage DESC) as rn
+        FROM usage_details WHERE detail_type = 'item'
+        ) ti ON ps.id = ti.stats_id AND ti.rn = 1
+        LEFT JOIN
+        -- 关联道具中文名
+        item_info ii ON REPLACE(REPLACE(LOWER(ti.detail_name), ' ', ''), '-', '') = REPLACE(REPLACE(LOWER(ii.name_en), ' ', ''), '-', '')
+        WHERE
+        ps.snapshot_id = #{snapshotId}
+        ORDER BY
+        -- 按使用率降序排序
+        ps.usage_rate DESC,
+        -- 同等使用率时按竞技分级排序
+        FIELD(pt.tier, 'AG', 'Uber', 'OU', 'UUBL', 'UU', 'RUBL', 'RU', 'NUBL', 'NU', 'PUBL', 'PU', 'NFE', 'LC'),
+        -- 最后按ID排序
+        pi.id ASC
     </select>
 
 </mapper>
