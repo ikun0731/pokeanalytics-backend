@@ -23,8 +23,16 @@
         FROM pokemon_usage_stats
         WHERE
             snapshot_id = #{snapshotId}
-          AND #{fullFormName} LIKE CONCAT(pokemon_name_en, '%')
+          -- 使用索引扫描后再用LIKE过滤，而不是直接用LIKE条件
+          AND (
+              pokemon_name_en = #{fullFormName} -- 完全匹配优先，利用索引
+              OR
+              #{fullFormName} LIKE CONCAT(pokemon_name_en, '%') -- 回退到前缀匹配
+          )
         ORDER BY
+            -- 优先选择完全匹配的
+            CASE WHEN pokemon_name_en = #{fullFormName} THEN 0 ELSE 1 END,
+            -- 然后是名称最长的
             LENGTH(pokemon_name_en) DESC
         LIMIT 1
     </select>

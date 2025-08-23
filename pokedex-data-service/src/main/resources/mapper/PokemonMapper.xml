@@ -101,7 +101,6 @@
         <!-- 动态WHERE条件，根据传入参数构建 -->
         <where>
             <if test="keyword != null and keyword.trim() != ''">
-                <!-- 模糊匹配中文名或英文名 -->
                 (name_cn LIKE CONCAT('%', #{keyword}, '%') OR name_en LIKE CONCAT('%', #{keyword}, '%'))
             </if>
             <if test="type != null and type.trim() != ''">
@@ -196,18 +195,26 @@
         - 优先选择名称更短的基础形态
     -->
     <select id="findBestMatchByName" resultType="com.pokeanalytics.pokedexdataservice.entity.Pokemon">
-        SELECT * FROM pokemon
-        WHERE
-            -- 优先尝试完全匹配 (例如: 'pikachu' -> 'pikachu')
-            name_en = #{nameEn}
-            -- 如果无法完全匹配，则尝试前缀匹配 (例如: 'ogerpon-wellspring' -> 'ogerpon-wellspring-mask')
-            OR name_en LIKE CONCAT(#{nameEn}, '-%')
+        -- 使用高效查询策略，优先使用精确索引匹配，避免不必要的模糊匹配
+        SELECT * FROM (
+            -- 先尝试精确匹配，这会使用索引
+            SELECT * FROM pokemon
+            WHERE name_en = #{nameEn}
+            UNION ALL
+            -- 如果精确匹配没有结果，再尝试前缀匹配
+            SELECT * FROM pokemon
+            WHERE name_en LIKE CONCAT(#{nameEn}, '-%')
+            -- 这个查询只在第一个查询没有结果时执行
+            AND NOT EXISTS (
+                SELECT 1 FROM pokemon WHERE name_en = #{nameEn}
+            )
+        ) AS combined_results
         ORDER BY 
-            -- 优先选择名字更短的，通常是基础形态 (例如: 'rotom'匹配'rotom'和'rotom-wash'时，优先选择'rotom')
-            LENGTH(name_en) ASC, 
-            -- 如果长度相同，按ID排序
+            -- 优先选择名字更短的，通常是基础形态
+            LENGTH(name_en) ASC,
+            -- 如果长度相同，按ID排序 
             id ASC
-        -- 只返回最匹配的一个结果，防止程序因多结果而崩溃
+        -- 只返回最匹配的一个结果
         LIMIT 1
     </select>
 </mapper>

@@ -18,6 +18,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 宝可梦排行榜服务实现类
@@ -25,6 +28,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class LeaderboardServiceImpl implements LeaderboardService {
+    
+    private static final Logger log = LoggerFactory.getLogger(LeaderboardServiceImpl.class);
 
     /**
      * 排行榜数据库操作接口
@@ -58,7 +63,9 @@ public class LeaderboardServiceImpl implements LeaderboardService {
      * @return 封装好的排行榜分页结果
      */
     @Override
-    @Cacheable(value = "leaderboards", key = "#format + '::' + #cutoff + '::' + #pageNum + '::' + #pageSize")
+    @Cacheable(value = "leaderboards", key = "#format + '::' + #cutoff + '::' + #pageNum + '::' + #pageSize", 
+               unless = "#result == null || #result.items.isEmpty()", 
+               cacheManager = "redisCacheManager")
     public PageResultDto<LeaderboardItemDto> getLeaderboard(String format, int cutoff, long pageNum, long pageSize) {
         // 1. 查询指定对战格式的最新统计月份
         QueryWrapper<StatsSnapshot> monthQuery = new QueryWrapper<StatsSnapshot>()
@@ -137,5 +144,29 @@ public class LeaderboardServiceImpl implements LeaderboardService {
             dto.setTypesCn(Collections.emptyList());
         }
         return dto;
+    }
+    
+    /**
+     * 预热排行榜缓存
+     * 定时加载常用排行榜数据到缓存中，提高访问速度
+     */
+    @Scheduled(fixedRate = 3600000) // 每小时执行一次
+    public void preloadLeaderboardCache() {
+        log.info("开始预热排行榜缓存");
+        List<String> formats = Arrays.asList("gen9ou", "gen9ubers", "gen9nationaldex");
+        List<Integer> cutoffs = Arrays.asList(1500, 1630, 1760, 1825);
+        
+        for (String format : formats) {
+            for (Integer cutoff : cutoffs) {
+                try {
+                    // 预加载第一页，这是最常访问的页面
+                    getLeaderboard(format, cutoff, 1, 20);
+                    log.info("预热排行榜缓存完成: format={}, cutoff={}", format, cutoff);
+                } catch (Exception e) {
+                    log.error("预热排行榜缓存失败: format={}, cutoff={}", format, cutoff, e);
+                }
+            }
+        }
+        log.info("排行榜缓存预热完成");
     }
 }
